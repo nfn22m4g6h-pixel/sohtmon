@@ -9,6 +9,8 @@ import { dateTime, money, PAYMENT_LABEL, qty } from "@/lib/format";
 import type { Sale, SaleItem } from "@/lib/types";
 import { Badge, Card, LinkButton, Notice, PageHeader } from "@/components/ui";
 import { CancelSaleForm } from "./cancel-form";
+import { ReturnForm } from "./return-form";
+import { isMissingSchema } from "@/lib/errors";
 import { PrintButton } from "./print-button";
 
 export const metadata: Metadata = { title: "Чек" };
@@ -28,6 +30,22 @@ export default async function SalePage({ params, searchParams }: { params: Promi
   const lines = (items ?? []) as SaleItem[];
   const cancelled = s.status === "cancelled";
 
+  // Возвраты по чеку (2.0-b; до обновления базы таблицы нет — блок скрыт)
+  const { data: retData, error: retError } = await supabase
+    .from("sale_returns")
+    .select("id, number, total, debt_reduction, refund_amount, refund_method, reason, created_at, sale_return_items(sale_item_id, qty)")
+    .eq("sale_id", id)
+    .order("created_at");
+  const returnsAvailable = !isMissingSchema(retError);
+  const returns = (retData ?? []) as unknown as {
+    id: string; number: number; total: number; debt_reduction: number; refund_amount: number; refund_method: "cash" | "card" | "transfer"; reason: string | null; created_at: string;
+    sale_return_items: { sale_item_id: string; qty: number }[];
+  }[];
+  const returnedQty = new Map<string, number>();
+  returns.forEach((r) => r.sale_return_items.forEach((i) => returnedQty.set(i.sale_item_id, (returnedQty.get(i.sale_item_id) ?? 0) + Number(i.qty))));
+  const debtLeft = Number(s.debt) - returns.reduce((a, r) => a + Number(r.debt_reduction), 0);
+  const canReturn = returnsAvailable && !cancelled && can(profile.role, "sales.return") && lines.some((l) => Number(l.qty) - (returnedQty.get(l.id) ?? 0) > 0);
+
   // Товары из чека, которые теперь заканчиваются
   const { data: stockRows } = lines.length
     ? await supabase.from("products").select("id, name, stock, min_stock, unit").in("id", lines.map((l) => l.product_id))
@@ -44,7 +62,8 @@ export default async function SalePage({ params, searchParams }: { params: Promi
     ...(Number(s.discount) > 0 ? [`Скидка: ${money(s.discount, s.currency)}`] : []),
     `*Итого: ${money(s.total, s.currency)}*`,
     `Оплачено: ${money(s.paid, s.currency)}`,
-    ...(Number(s.debt) > 0 ? [`Долг: ${money(s.debt, s.currency)}`] : []),
+    ...(returns.length ? returns.map((r) => `Возврат №${r.number}: −${money(r.total, s.currency)}`) : []),
+    ...(debtLeft > 0 ? [`Долг: ${money(debtLeft, s.currency)}`] : []),
     ...(cancelled ? ["", "ЧЕК ОТМЕНЁН"] : []),
     "",
     settings?.receipt_footer ?? "",
@@ -89,7 +108,10 @@ export default async function SalePage({ params, searchParams }: { params: Promi
         <div className="my-3 border-t border-dashed border-slate-300" />
         {lines.map((l) => (
           <div key={l.id} className="mb-2">
-            <p className="font-sans text-[14px] font-medium">{l.product_name}</p>
+            <p className="font-sans text-[14px] font-medium">
+              {l.product_name}
+              {returnedQty.get(l.id) ? <span className="ml-1 text-xs text-amber-600">(возвращено {qty(returnedQty.get(l.id))})</span> : null}
+            </p>
             <div className="flex justify-between text-slate-600">
               <span>
                 {qty(l.qty)} × {money(l.price, s.currency)}
@@ -111,11 +133,22 @@ export default async function SalePage({ params, searchParams }: { params: Promi
             <span className={cancelled ? "line-through" : ""}>{money(s.total, s.currency)}</span>
           </div>
           <div className="flex justify-between"><span>Оплачено ({PAYMENT_LABEL[s.payment_method]})</span><span>{money(s.paid, s.currency)}</span></div>
-          {Number(s.debt) > 0 && (
-            <div className="flex justify-between font-semibold text-amber-700"><span>Долг</span><span>{money(s.debt, s.currency)}</span></div>
+          {debtLeft > 0 && (
+            <div className="flex justify-between font-semibold text-amber-700"><span>Долг{returns.length ? " (после возврата)" : ""}</span><span>{money(debtLeft, s.currency)}</span></div>
           )}
           {s.currency === "CNY" && <p className="text-xs text-muted">Курс: 1 CNY = {Number(s.rate)} TJS</p>}
         </div>
+        {returns.length > 0 && (
+          <>
+            <div className="my-3 border-t border-dashed border-slate-300" />
+            {returns.map((r) => (
+              <div key={r.id} className="flex justify-between text-amber-700">
+                <span>Возврат №{r.number} · {dateTime(r.created_at)}</span>
+                <span>− {money(r.total, s.currency)}</span>
+              </div>
+            ))}
+          </>
+        )}
         <div className="my-3 border-t border-dashed border-slate-300" />
         <div className="space-y-0.5 text-slate-600">
           {s.customers && <p>Клиент: {s.customers.name}{s.customers.phone ? `, ${s.customers.phone}` : ""}</p>}
@@ -150,7 +183,29 @@ export default async function SalePage({ params, searchParams }: { params: Promi
             Карточка клиента
           </LinkButton>
         )}
-        {!cancelled && can(profile.role, "sales.cancel") && <CancelSaleForm id={s.id} />}
+        {canReturn && (
+          <ReturnForm
+            saleId={s.id}
+            currency={s.currency}
+            factor={Number(s.subtotal) > 0 ? Number(s.total) / Number(s.subtotal) : 0}
+            debtLeft={debtLeft}
+            defaultMethod={s.payment_method}
+            lines={lines.map((l) => ({ id: l.id, product_name: l.product_name, price: Number(l.price), available: Number(l.qty) - (returnedQty.get(l.id) ?? 0) }))}
+          />
+        )}
+        {returns.length > 0 && (
+          <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+            {returns.map((r) => (
+              <p key={r.id}>
+                Возврат №{r.number}: {money(r.total, s.currency)}
+                {Number(r.debt_reduction) > 0 ? ` (долг −${money(r.debt_reduction, s.currency)})` : ""}
+                {Number(r.refund_amount) > 0 ? `, выдано ${money(r.refund_amount, s.currency)}` : ""}
+                {r.reason ? ` · ${r.reason}` : ""}
+              </p>
+            ))}
+          </div>
+        )}
+        {!cancelled && returns.length === 0 && can(profile.role, "sales.cancel") && <CancelSaleForm id={s.id} />}
       </div>
     </div>
   );

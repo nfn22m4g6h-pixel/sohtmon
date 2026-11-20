@@ -227,7 +227,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ kind
       .order("created_at")
       .limit(20000);
     if (error) return new Response(error.message, { status: 500 });
-    const SRC: Record<string, string> = { sale: "Продажа", sale_cancel: "Отмена продажи", debt_payment: "Оплата долга", expense: "Расход", arrival: "Оплата прихода", manual: "Ручная", supplier_payment: "Оплата поставщику" };
+    const SRC: Record<string, string> = { sale: "Продажа", sale_cancel: "Отмена продажи", debt_payment: "Оплата долга", expense: "Расход", arrival: "Оплата прихода", manual: "Ручная", supplier_payment: "Оплата поставщику", sale_return: "Возврат", shift_diff: "Расхождение смены" };
     const rows = (data ?? []).map((t) => {
       const r = t as unknown as Record<string, unknown> & { profiles: { full_name: string } | null };
       return {

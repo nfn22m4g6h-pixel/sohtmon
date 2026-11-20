@@ -10,7 +10,7 @@ import { ExportButton } from "@/components/export-button";
 
 export const metadata: Metadata = { title: "Прибыль и отчёты" };
 
-type Summary = { revenue: number; cogs: number; gross_profit: number; expenses: number; net_profit: number; sales_count: number; avg_check: number; discounts: number; new_debt: number };
+type Summary = { revenue: number; cogs: number; gross_profit: number; expenses: number; net_profit: number; sales_count: number; avg_check: number; discounts: number; new_debt: number; returns?: number; returns_count?: number };
 type Daily = { day: string; revenue: number; profit: number; expenses: number; sales_count: number };
 type Top = { product_id: string; name: string; qty: number; revenue: number; profit: number };
 
@@ -71,6 +71,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         <StatCard label="Средний чек" value={money(s.avg_check)} icon={<ShoppingBag className="size-5" />} />
         <StatCard label="Скидки" value={money(s.discounts)} tone="amber" />
         <StatCard label="Продано в долг" value={money(s.new_debt)} tone="amber" />
+        {s.returns !== undefined && Number(s.returns) > 0 && (
+          <StatCard label="Возвраты" value={money(s.returns)} hint={`${s.returns_count} шт. · уже вычтены из выручки`} tone="red" />
+        )}
       </div>
 
       {d.length > 1 && (

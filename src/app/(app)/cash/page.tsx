@@ -7,6 +7,8 @@ import { dateTime, money, periodRange, presetPeriod } from "@/lib/format";
 import type { Currency } from "@/lib/types";
 import { Card, CardHeader, Chips, EmptyState, List, ListRow, PageHeader } from "@/components/ui";
 import { CashForm } from "./cash-form";
+import { ShiftPanel, type Shift } from "./shift-panel";
+import { isMissingSchema } from "@/lib/errors";
 
 import { ExportButton } from "@/components/export-button";
 
@@ -20,6 +22,8 @@ const SOURCE_LABEL: Record<string, string> = {
   arrival: "Оплата прихода",
   manual: "Ручная операция",
   supplier_payment: "Оплата поставщику",
+  sale_return: "Возврат покупателю",
+  shift_diff: "Расхождение смены",
 };
 
 export default async function CashPage({ searchParams }: { searchParams: Promise<{ p?: string; cur?: string }> }) {
@@ -36,7 +40,16 @@ export default async function CashPage({ searchParams }: { searchParams: Promise
     .order("created_at", { ascending: false })
     .limit(300);
   if (cur === "TJS" || cur === "CNY") query = query.eq("currency", cur);
-  const [{ data: balances }, { data: txs }] = await Promise.all([supabase.from("cash_balances").select("*"), query]);
+  const [{ data: balances }, { data: txs }, { data: shiftsData, error: shiftsError }] = await Promise.all([
+    supabase.from("cash_balances").select("*"),
+    query,
+    supabase
+      .from("cash_shifts")
+      .select("id, number, opened_at, closed_at, expected_tjs, counted_tjs, expected_cny, counted_cny, opener:opened_by(full_name)")
+      .order("opened_at", { ascending: false })
+      .limit(6),
+  ]);
+  const shiftsAvailable = !isMissingSchema(shiftsError);
   const list = (txs ?? []) as unknown as {
     id: number;
     direction: "in" | "out";
@@ -84,7 +97,12 @@ export default async function CashPage({ searchParams }: { searchParams: Promise
         ]}
       />
       <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
-        {can(profile.role, "cash.edit") && <div><CashForm /></div>}
+        <div className="space-y-4">
+          {shiftsAvailable && (
+            <ShiftPanel shifts={(shiftsData ?? []) as unknown as Shift[]} canEdit={can(profile.role, "cash.edit")} balanceTjs={bal("TJS")} balanceCny={bal("CNY")} />
+          )}
+          {can(profile.role, "cash.edit") && <CashForm />}
+        </div>
         <Card className="overflow-hidden lg:col-start-2">
           <CardHeader
             title="Операции"

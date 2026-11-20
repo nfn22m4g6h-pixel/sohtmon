@@ -24,6 +24,7 @@ export const PERMISSIONS = {
   "sales.create": ["owner", "admin", "manager", "cashier"],
   "sales.price": ["owner", "admin", "manager"],
   "sales.cancel": ["owner", "admin"],
+  "sales.return": ["owner", "admin", "manager"],
   "stock.view": ["owner", "admin", "manager", "warehouse"],
   "stock.edit": ["owner", "admin", "manager", "warehouse"],
   "suppliers.view": ["owner", "admin", "manager", "warehouse"],

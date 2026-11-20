@@ -49,3 +49,27 @@ export async function cancelSale(_: ActionState, fd: FormData): Promise<ActionSt
   revalidatePath("/", "layout");
   redirect(`/sales/${id}`);
 }
+
+export async function returnItems(input: {
+  sale_id: string;
+  items: { sale_item_id: string; qty: number }[];
+  refund_method: PaymentMethod;
+  reason: string;
+}): Promise<ActionState> {
+  const auth = await authorize("sales.return");
+  if ("error" in auth) return auth;
+  const items = input.items.filter((i) => i.qty > 0);
+  if (!items.length) return { error: "Укажите количество для возврата" };
+  if (!input.reason.trim()) return { error: "Укажите причину возврата" };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("return_sale_items", {
+    p_sale_id: input.sale_id,
+    p_items: items,
+    p_refund_method: input.refund_method,
+    p_reason: input.reason,
+  });
+  if (error) return { error: dbError(error) };
+  revalidatePath("/", "layout");
+  const r = data as { refund_amount: number; debt_reduction: number };
+  return { ok: true, message: `Возврат оформлен: выдано ${r.refund_amount}, долг уменьшен на ${r.debt_reduction}` };
+}

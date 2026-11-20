@@ -44,8 +44,8 @@ Owner (Владелец), Admin, Manager, Cashier (Кассир), Warehouse (К�
 
 1. Создайте проект на [supabase.com](https://supabase.com).
 2. Примените миграции **по порядку** из `supabase/migrations/`:
-   - через Supabase CLI: `supabase link --project-ref <ref> && supabase db push`, или
-   - вставьте содержимое трёх файлов по очереди в SQL Editor и выполните.
+   - **проще всего:** вставьте весь файл `supabase/setup.sql` в SQL Editor и нажмите Run, или
+   - через Supabase CLI: `supabase link --project-ref <ref> && supabase db push`.
 3. В Supabase → Authentication → Providers включите Email. Для быстрого старта можно отключить «Confirm email».
 4. Скопируйте `.env.example` в `.env.local` и заполните ключи.
 5. Запуск:

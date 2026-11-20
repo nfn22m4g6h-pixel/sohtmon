@@ -1,0 +1,7 @@
+# Netlify: сборка Next.js-приложения SOHTMON ERP
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

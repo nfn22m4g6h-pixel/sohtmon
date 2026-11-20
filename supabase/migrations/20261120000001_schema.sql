@@ -1,7 +1,8 @@
 -- SOHTMON ERP 1.0 — схема базы данных
 -- Валюты: TJS (базовая) и CNY. rate = сколько TJS за 1 единицу валюты документа.
 
-create extension if not exists pg_trgm;
+create schema if not exists extensions;
+create extension if not exists pg_trgm with schema extensions;
 
 -- ---------------------------------------------------------------------------
 -- Типы
@@ -72,8 +73,8 @@ create table public.products (
 create unique index products_sku_key on public.products (lower(sku)) where sku is not null and sku <> '';
 create unique index products_barcode_key on public.products (barcode) where barcode is not null and barcode <> '';
 create index products_category_idx on public.products (category_id);
-create index products_name_trgm on public.products using gin (name gin_trgm_ops);
-create index products_sku_trgm on public.products using gin (sku gin_trgm_ops);
+create index products_name_trgm on public.products using gin (name extensions.gin_trgm_ops);
+create index products_sku_trgm on public.products using gin (sku extensions.gin_trgm_ops);
 
 create table public.customers (
   id uuid primary key default gen_random_uuid(),
@@ -84,7 +85,7 @@ create table public.customers (
   created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
-create index customers_name_trgm on public.customers using gin (name gin_trgm_ops);
+create index customers_name_trgm on public.customers using gin (name extensions.gin_trgm_ops);
 create index customers_phone_idx on public.customers (phone);
 
 -- ---------------------------------------------------------------------------

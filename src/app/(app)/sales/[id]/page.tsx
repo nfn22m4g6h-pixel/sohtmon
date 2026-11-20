@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MessageCircle } from "lucide-react";
+import { waLink } from "@/lib/whatsapp";
 import { requirePermission } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { createClient } from "@/lib/supabase/server";
@@ -27,6 +28,28 @@ export default async function SalePage({ params, searchParams }: { params: Promi
   const lines = (items ?? []) as SaleItem[];
   const cancelled = s.status === "cancelled";
 
+  // Товары из чека, которые теперь заканчиваются
+  const { data: stockRows } = lines.length
+    ? await supabase.from("products").select("id, name, stock, min_stock, unit").in("id", lines.map((l) => l.product_id))
+    : { data: [] };
+  const lowAfter = (stockRows ?? []).filter((p) => Number(p.stock) <= Number(p.min_stock));
+
+  const company = settings?.company_name ?? "SOHTMON";
+  const receiptText = [
+    `*${company}*`,
+    `Чек №${s.number} от ${dateTime(s.created_at)}`,
+    "",
+    ...lines.map((l) => `${l.product_name}\n  ${qty(l.qty)} × ${money(l.price, s.currency)} = ${money(l.total, s.currency)}`),
+    "",
+    ...(Number(s.discount) > 0 ? [`Скидка: ${money(s.discount, s.currency)}`] : []),
+    `*Итого: ${money(s.total, s.currency)}*`,
+    `Оплачено: ${money(s.paid, s.currency)}`,
+    ...(Number(s.debt) > 0 ? [`Долг: ${money(s.debt, s.currency)}`] : []),
+    ...(cancelled ? ["", "ЧЕК ОТМЕНЁН"] : []),
+    "",
+    settings?.receipt_footer ?? "",
+  ].join("\n");
+
   return (
     <div className="mx-auto max-w-md">
       <div className="no-print">
@@ -41,6 +64,20 @@ export default async function SalePage({ params, searchParams }: { params: Promi
           </div>
         )}
         {cancelled && <div className="mb-4"><Notice tone="red">Продажа отменена {s.cancelled_at ? dateTime(s.cancelled_at) : ""}</Notice></div>}
+        {!cancelled && lowAfter.length > 0 && (
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 animate-fade-up">
+            <p className="flex items-center gap-2 font-semibold">
+              <AlertTriangle className="size-5" /> Заканчивается на складе
+            </p>
+            <ul className="mt-1 space-y-0.5 text-sm">
+              {lowAfter.map((p) => (
+                <li key={p.id}>
+                  {p.name} — осталось {qty(p.stock)} {p.unit} (мин. {qty(p.min_stock)})
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <Card className="relative overflow-hidden p-5 font-mono text-[13px] print:border-0 print:shadow-none">
@@ -94,6 +131,14 @@ export default async function SalePage({ params, searchParams }: { params: Promi
       </Card>
 
       <div className="no-print mt-4 space-y-2">
+        <a
+          href={waLink(s.customers?.phone, receiptText)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] text-[15px] font-semibold text-white shadow-[0_6px_16px_-6px_rgba(37,211,102,0.7)] transition active:scale-[0.98]"
+        >
+          <MessageCircle className="size-5" /> {s.customers?.phone ? "Отправить чек клиенту в WhatsApp" : "Отправить чек в WhatsApp"}
+        </a>
         <PrintButton />
         {can(profile.role, "sales.create") && (
           <LinkButton href="/sales/new" className="w-full">

@@ -1,13 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { saveProduct } from "./actions";
 import type { Category, Product } from "@/lib/types";
 import { Card, Field, Input, Select } from "@/components/ui";
 import { FormMessage, SubmitButton } from "@/components/form";
+import { ScanButton } from "@/components/barcode-scanner";
 
 export function ProductForm({ product, categories }: { product?: Product; categories: Category[] }) {
   const [state, action] = useActionState(saveProduct, null);
+  const barcodeRef = useRef<HTMLInputElement>(null);
   return (
     <form action={action} className="space-y-4">
       {product && <input type="hidden" name="id" value={product.id} />}
@@ -20,7 +22,15 @@ export function ProductForm({ product, categories }: { product?: Product; catego
             <Input name="sku" defaultValue={product?.sku ?? ""} placeholder="BM-180" />
           </Field>
           <Field label="Штрихкод">
-            <Input name="barcode" defaultValue={product?.barcode ?? ""} inputMode="numeric" />
+            <div className="relative">
+              <Input ref={barcodeRef} name="barcode" defaultValue={product?.barcode ?? ""} inputMode="numeric" className="pr-11" />
+              <ScanButton
+                onResult={(code) => {
+                  if (barcodeRef.current) barcodeRef.current.value = code;
+                }}
+                className="absolute top-1/2 right-1 size-9 -translate-y-1/2"
+              />
+            </div>
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">

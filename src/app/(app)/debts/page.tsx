@@ -6,6 +6,8 @@ import { dateTime, money } from "@/lib/format";
 import type { Currency, CustomerBalance } from "@/lib/types";
 import { Card, CardHeader, EmptyState, List, ListRow, PageHeader, StatCard } from "@/components/ui";
 
+import { ExportButton } from "@/components/export-button";
+
 export const metadata: Metadata = { title: "Долги и оплаты" };
 
 export default async function DebtsPage() {
@@ -23,7 +25,11 @@ export default async function DebtsPage() {
 
   return (
     <div>
-      <PageHeader title="Долги и оплаты" subtitle={`${new Set(list.map((b) => b.customer_id)).size} должников`} />
+      <PageHeader
+        title="Долги и оплаты"
+        subtitle={`${new Set(list.map((b) => b.customer_id)).size} должников`}
+        action={<ExportButton href="/api/export/debts" />}
+      />
       <div className="stagger mb-4 grid grid-cols-2 gap-3">
         <StatCard label="Долги в TJS" value={money(total("TJS"))} tone="amber" icon={<HandCoins className="size-5" />} />
         <StatCard label="Долги в CNY" value={money(total("CNY"), "CNY")} tone="amber" icon={<HandCoins className="size-5" />} />

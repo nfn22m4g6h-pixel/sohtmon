@@ -7,6 +7,7 @@ import { createSale } from "../actions";
 import { money, qty as fmtQty, PAYMENT_LABEL } from "@/lib/format";
 import type { Currency, PaymentMethod } from "@/lib/types";
 import { Button, Card, cn, Field, Input, inputClass, Notice, Select } from "@/components/ui";
+import { ScanButton } from "@/components/barcode-scanner";
 
 export type PosProduct = {
   id: string;
@@ -77,6 +78,17 @@ export function Pos({
   function setQty(id: string, q: number) {
     setLines((prev) => (q <= 0 ? prev.filter((l) => l.product.id !== id) : prev.map((l) => (l.product.id === id ? { ...l, qty: q } : l))));
   }
+  function onScan(code: string) {
+    const found = products.find((p) => p.barcode === code || p.sku?.toLowerCase() === code.toLowerCase());
+    if (found) {
+      if (Number(found.stock) <= 0) setError(`«${found.name}» нет в наличии`);
+      else add(found);
+    } else {
+      setError(`Товар со штрихкодом ${code} не найден`);
+      setSearch(code);
+    }
+  }
+
   function onSearchEnter() {
     const q = search.trim();
     const exact = products.find((p) => p.barcode === q || p.sku?.toLowerCase() === q.toLowerCase());
@@ -204,10 +216,11 @@ export function Pos({
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onSearchEnter())}
             placeholder="Поиск товара или сканируйте штрихкод"
-            className={cn(inputClass, "h-12 rounded-2xl pl-10")}
+            className={cn(inputClass, "h-12 rounded-2xl pr-12 pl-10")}
             enterKeyHint="search"
             autoComplete="off"
           />
+          <ScanButton onResult={onScan} className="absolute top-1/2 right-1.5 size-10 -translate-y-1/2" />
         </div>
 
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
@@ -242,6 +255,11 @@ export function Pos({
           })}
         </div>
         {results.length === 0 && <p className="py-10 text-center text-sm text-muted">Товары не найдены</p>}
+        {error && !sheet && (
+          <div className="mt-3 lg:hidden">
+            <Notice tone="red">{error}</Notice>
+          </div>
+        )}
       </div>
 
       {/* Чек */}

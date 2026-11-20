@@ -8,6 +8,8 @@ import type { Currency } from "@/lib/types";
 import { Card, CardHeader, Chips, EmptyState, List, ListRow, PageHeader } from "@/components/ui";
 import { CashForm } from "./cash-form";
 
+import { ExportButton } from "@/components/export-button";
+
 export const metadata: Metadata = { title: "Касса" };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -54,7 +56,7 @@ export default async function CashPage({ searchParams }: { searchParams: Promise
 
   return (
     <div>
-      <PageHeader title="Касса" subtitle="Наличные деньги по валютам" />
+      <PageHeader title="Касса" subtitle="Наличные деньги по валютам" action={<ExportButton href={`/api/export/cash?p=${p}`} />} />
       <div className="stagger mb-4 grid gap-3 sm:grid-cols-2">
         {(["TJS", "CNY"] as Currency[]).map((c) => (
           <Card key={c} className={c === "TJS" ? "border-0 bg-gradient-to-br from-brand-600 to-brand-800 p-5 text-white" : "p-5"}>

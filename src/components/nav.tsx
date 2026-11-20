@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  Bell,
   Ellipsis,
   HandCoins,
   LayoutDashboard,
@@ -57,7 +58,24 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Sidebar({ role, name, company }: { role: Role; name: string; company: string }) {
+export function AlertsBell({ count, className }: { count: number; className?: string }) {
+  return (
+    <Link
+      href="/notifications"
+      className={cn("relative grid size-9 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100", className)}
+      aria-label={count ? `Уведомления: ${count}` : "Уведомления"}
+    >
+      <Bell className="size-5" />
+      {count > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+export function Sidebar({ role, name, company, alerts = 0 }: { role: Role; name: string; company: string; alerts?: number }) {
   const pathname = usePathname();
   const items = navFor(role);
   const groups = [...new Set(items.map((i) => i.group))];
@@ -65,10 +83,11 @@ export function Sidebar({ role, name, company }: { role: Role; name: string; com
     <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-white lg:flex">
       <div className="flex items-center gap-3 px-5 py-5">
         <LogoMark size={40} className="shrink-0 drop-shadow-[0_6px_12px_rgba(37,87,235,0.35)]" />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-[15px] font-bold tracking-tight">{company}</p>
           <p className="text-xs text-muted">ERP 1.0</p>
         </div>
+        <AlertsBell count={alerts} />
       </div>
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
         {groups.map((g) => (
@@ -153,7 +172,7 @@ export function BottomNav({ role }: { role: Role }) {
   );
 }
 
-export function MobileTopBar({ company, name }: { company: string; name: string }) {
+export function MobileTopBar({ company, name, alerts = 0 }: { company: string; name: string; alerts?: number }) {
   return (
     <header className="no-print sticky top-0 z-30 border-b border-line/70 bg-white/85 pt-[var(--safe-top)] backdrop-blur-xl lg:hidden">
       <div className="flex h-14 items-center justify-between px-4">
@@ -161,9 +180,12 @@ export function MobileTopBar({ company, name }: { company: string; name: string 
           <LogoMark size={32} />
           <span className="text-[16px] font-bold tracking-tight">{company}</span>
         </Link>
-        <Link href="/settings" className="grid size-9 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
-          {name.slice(0, 1).toUpperCase()}
-        </Link>
+        <div className="flex items-center gap-1.5">
+          <AlertsBell count={alerts} />
+          <Link href="/settings" className="grid size-9 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
+            {name.slice(0, 1).toUpperCase()}
+          </Link>
+        </div>
       </div>
     </header>
   );

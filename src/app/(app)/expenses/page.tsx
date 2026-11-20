@@ -9,6 +9,8 @@ import { Card, CardHeader, Chips, EmptyState, PageHeader } from "@/components/ui
 import { HBarChart } from "@/components/charts";
 import { DeleteExpenseButton, ExpenseForm } from "./expense-forms";
 
+import { ExportButton } from "@/components/export-button";
+
 export const metadata: Metadata = { title: "Расходы" };
 
 export default async function ExpensesPage({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
@@ -43,7 +45,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
 
   return (
     <div>
-      <PageHeader title="Расходы" subtitle={`${period.label}: ${money(totalTjs)}`} />
+      <PageHeader title="Расходы" subtitle={`${period.label}: ${money(totalTjs)}`} action={<ExportButton href={`/api/export/expenses?p=${p}`} />} />
       <Chips
         active={p}
         items={[

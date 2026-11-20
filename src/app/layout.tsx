@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ServiceWorker } from "@/components/service-worker";
+import { Splash, splashInitScript } from "@/components/splash";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,8 +23,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: splashInitScript }} />
+      </head>
       <body className="min-h-dvh antialiased">
+        <Splash />
         {children}
         <ServiceWorker />
       </body>

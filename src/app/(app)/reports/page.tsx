@@ -6,6 +6,8 @@ import { money, num, periodRange, presetPeriod, qty, shortDay } from "@/lib/form
 import { Button, Card, CardHeader, Chips, EmptyState, Input, PageHeader, StatCard } from "@/components/ui";
 import { HBarChart, SERIES, TrendChart } from "@/components/charts";
 
+import { ExportButton } from "@/components/export-button";
+
 export const metadata: Metadata = { title: "Прибыль и отчёты" };
 
 type Summary = { revenue: number; cogs: number; gross_profit: number; expenses: number; net_profit: number; sales_count: number; avg_check: number; discounts: number; new_debt: number };
@@ -39,7 +41,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   return (
     <div>
-      <PageHeader title="Прибыль и отчёты" subtitle={`${period.label} · все суммы в TJS`} />
+      <PageHeader
+        title="Прибыль и отчёты"
+        subtitle={`${period.label} · все суммы в TJS`}
+        action={<ExportButton href={`/api/export/report?from=${period.from}&to=${period.to}`} />}
+      />
       <Chips
         active={custom ? "custom" : (sp.p ?? "30d")}
         items={[

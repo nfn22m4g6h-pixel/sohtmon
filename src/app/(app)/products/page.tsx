@@ -7,6 +7,7 @@ import { money, qty } from "@/lib/format";
 import { cleanSearch } from "@/lib/search";
 import type { Category, Product } from "@/lib/types";
 import { Badge, Card, Chips, EmptyState, LinkButton, List, ListRow, Notice, PageHeader } from "@/components/ui";
+import { ExportButton } from "@/components/export-button";
 import { SearchInput } from "@/components/search-input";
 
 export const metadata: Metadata = { title: "Товары и склад" };
@@ -54,15 +55,18 @@ export default async function ProductsPage({
         title="Товары и склад"
         subtitle={`${list.length} позиций${showCost ? ` · склад по себестоимости ${money(stockValue)}` : ""}`}
         action={
-          can(profile.role, "products.edit") && (
-            <LinkButton href="/products/new" size="md">
-              <Plus className="size-4" /> <span className="hidden sm:inline">Товар</span>
-            </LinkButton>
-          )
+          <>
+            <ExportButton href="/api/export/products" />
+            {can(profile.role, "products.edit") && (
+              <LinkButton href="/products/new" size="md">
+                <Plus className="size-4" /> <span className="hidden sm:inline">Товар</span>
+              </LinkButton>
+            )}
+          </>
         }
       />
       {error && <div className="mb-4"><Notice tone="red">{error}</Notice></div>}
-      <SearchInput placeholder="Название, артикул или штрихкод" />
+      <SearchInput placeholder="Название, артикул или штрихкод" scan />
       <Chips
         active={filter ?? "active"}
         items={[

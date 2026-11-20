@@ -7,6 +7,7 @@ import { dateTime, money, PAYMENT_LABEL, periodRange, presetPeriod } from "@/lib
 import { cleanSearch } from "@/lib/search";
 import type { Sale } from "@/lib/types";
 import { Badge, Card, Chips, EmptyState, LinkButton, List, ListRow, PageHeader } from "@/components/ui";
+import { ExportButton } from "@/components/export-button";
 import { SearchInput } from "@/components/search-input";
 
 export const metadata: Metadata = { title: "История продаж" };
@@ -52,11 +53,14 @@ export default async function SalesPage({ searchParams }: { searchParams: Promis
         title="История продаж"
         subtitle={`${period.label}: ${completed.length} продаж · ${money(totalTjs)}`}
         action={
-          can(profile.role, "sales.create") && (
-            <LinkButton href="/sales/new">
-              <Plus className="size-4" /> <span className="hidden sm:inline">Продажа</span>
-            </LinkButton>
-          )
+          <>
+            <ExportButton href={`/api/export/sales?p=${p}`} />
+            {can(profile.role, "sales.create") && (
+              <LinkButton href="/sales/new">
+                <Plus className="size-4" /> <span className="hidden sm:inline">Продажа</span>
+              </LinkButton>
+            )}
+          </>
         }
       />
       <SearchInput placeholder="Номер чека или имя клиента" />

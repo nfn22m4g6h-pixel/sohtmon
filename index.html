@@ -3,38 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SOHTMON</title>
-
+<title>SOHTMON — бетономешалки</title>
 <link rel="stylesheet" href="style.css">
 <script defer src="app.js"></script>
 </head>
-
 <body>
 
 <header>
-<h1>SOHTMON</h1>
-<p>Профессиональные бетономешалки</p>
+  <h1>SOHTMON</h1>
+  <p>Профессиональные бетономешалки</p>
 </header>
 
-<div class="card">
+<main>
+  <section>
+    <h2 class="section-title">Каталог</h2>
+    <div id="catalog" class="catalog"></div>
+  </section>
 
-<h2>Бетономешалка MYSALON</h2>
+  <section id="order" class="order hidden">
+    <h2 class="section-title">Оформление заказа</h2>
+    <form id="order-form" novalidate>
+      <div class="selected" id="selected"></div>
 
-<p>📦 Объём: 220 л</p>
+      <label>Количество
+        <div class="qty">
+          <button type="button" data-step="-1" aria-label="Меньше">−</button>
+          <input id="qty" name="qty" type="number" min="1" max="99" value="1" inputmode="numeric">
+          <button type="button" data-step="1" aria-label="Больше">+</button>
+        </div>
+      </label>
 
-<p>⚙️ Мотор: 1.2 кВт</p>
+      <fieldset>
+        <legend>Получение</legend>
+        <label class="radio"><input type="radio" name="delivery" value="pickup" checked> Самовывоз со склада</label>
+        <label class="radio"><input type="radio" name="delivery" value="delivery"> Доставка</label>
+      </fieldset>
 
-<p class="price">2500 сомони</p>
+      <label id="address-field" class="hidden">Адрес доставки
+        <input id="address" name="address" type="text" placeholder="Город, улица, дом">
+      </label>
 
-<p>📍 Склад: Кулангир</p>
+      <label>Ваше имя
+        <input id="name" name="name" type="text" required autocomplete="name">
+      </label>
 
-<p>📞 +992 784 97 00 07</p>
+      <label>Телефон
+        <input id="phone" name="phone" type="tel" required autocomplete="tel" placeholder="+992 ...">
+      </label>
 
-<button onclick="order()">
-Заказать
-</button>
+      <label>Комментарий
+        <textarea id="comment" name="comment" rows="2"></textarea>
+      </label>
 
-</div>
+      <div class="total">Итого: <span id="total">0</span> сомони</div>
+      <p id="error" class="error" role="alert"></p>
+
+      <div class="actions">
+        <button type="submit" class="btn primary">Отправить в WhatsApp</button>
+        <a id="call" class="btn" href="#">📞 Позвонить</a>
+      </div>
+    </form>
+  </section>
+
+  <section id="history-section" class="hidden">
+    <h2 class="section-title">Мои заказы</h2>
+    <ul id="history" class="history"></ul>
+    <button type="button" id="clear-history" class="btn small">Очистить</button>
+  </section>
+</main>
+
+<footer>
+  <p>📍 Склад: Кулангир · 📞 <a href="tel:+992784970007">+992 784 97 00 07</a></p>
+</footer>
 
 </body>
 </html>

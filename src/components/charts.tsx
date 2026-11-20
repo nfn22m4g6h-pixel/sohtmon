@@ -104,6 +104,11 @@ export function TrendChart({ data, showProfit = false, height = 240 }: { data: P
   );
 }
 
+/** Сокращает середину названия: «Бетономешалка 120 л» → «Бетоном…120 л» — различимы похожие товары */
+function shortLabel(v: string) {
+  return v.length > 17 ? `${v.slice(0, 8)}…${v.slice(-8)}` : v;
+}
+
 export function HBarChart({ data, color = SERIES.revenue }: { data: { label: string; value: number }[]; color?: string }) {
   const height = Math.max(120, data.length * 38);
   return (
@@ -115,11 +120,11 @@ export function HBarChart({ data, color = SERIES.revenue }: { data: { label: str
           <YAxis
             type="category"
             dataKey="label"
-            width={110}
+            width={120}
             tick={{ fontSize: 12, fill: "#475569" }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(v: string) => (v.length > 16 ? `${v.slice(0, 15)}…` : v)}
+            tickFormatter={shortLabel}
           />
           <Tooltip content={<ChartTooltip />} cursor={{ fill: "#f1f5f9" }} />
           <Bar dataKey="value" name="Сумма" fill={color} radius={[0, 4, 4, 0]} maxBarSize={22} animationDuration={700} />

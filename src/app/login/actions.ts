@@ -21,6 +21,7 @@ export async function signIn(_: ActionState, formData: FormData): Promise<Action
   if (error) {
     if (/invalid login credentials/i.test(error.message)) return { error: "Неверный email или пароль" };
     if (/email not confirmed/i.test(error.message)) return { error: "Подтвердите email по ссылке из письма" };
+    if (/fetch failed|network/i.test(error.message)) return { error: "Нет связи с сервером. Проверьте интернет." };
     return { error: error.message };
   }
   redirect(safeNext(formData.get("next")));
@@ -38,6 +39,7 @@ export async function signUp(_: ActionState, formData: FormData): Promise<Action
   const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name } } });
   if (error) {
     if (/already registered/i.test(error.message)) return { error: "Этот email уже зарегистрирован" };
+    if (/fetch failed|network/i.test(error.message)) return { error: "Нет связи с сервером. Проверьте интернет." };
     return { error: error.message };
   }
   if (!data.session) {

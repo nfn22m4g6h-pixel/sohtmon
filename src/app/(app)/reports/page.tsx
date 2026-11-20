@@ -97,7 +97,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 <tbody className="divide-y divide-line">
                   {t.map((x) => (
                     <tr key={x.product_id}>
-                      <td className="max-w-0 truncate px-4 py-2">{x.name}</td>
+                      <td className="px-4 py-2 break-words">{x.name}</td>
                       <td className="tabular px-2 py-2 text-right">{qty(x.qty)}</td>
                       <td className={`tabular px-4 py-2 text-right font-semibold ${Number(x.profit) < 0 ? "text-red-600" : ""}`}>{money(x.profit)}</td>
                     </tr>

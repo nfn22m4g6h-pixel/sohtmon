@@ -140,7 +140,7 @@ select tst.login('warehouse');
 select tst.lives($$select create_arrival(
   jsonb_build_array(jsonb_build_object('product_id', tst.id('p120'), 'qty', 10, 'cost', 500),
                     jsonb_build_object('product_id', tst.id('p180'), 'qty', 4, 'cost', 800)),
-  'CNY', 'Поставщик Иу', true, 'Контейнер 1')$$, 'кладовщик оформляет приход в CNY с оплатой из кассы');
+  'CNY', null, null, 'cash', '[]'::jsonb, 'Контейнер 1', 'Поставщик Иу')$$, 'кладовщик оформляет приход в CNY с оплатой из кассы');
 reset role;
 select tst.ok((select stock from products where id = tst.id('p120')) = 10, 'остаток после прихода = 10');
 select tst.ok((select avg_cost_tjs from products where id = tst.id('p120')) = 800, 'себестоимость = 500 CNY × 1.6 = 800 TJS');
@@ -150,7 +150,7 @@ select tst.ok((select count(*) from stock_movements where type = 'arrival') = 2,
 
 set role authenticated;
 select tst.login('warehouse');
-select tst.lives($$select create_arrival(jsonb_build_array(jsonb_build_object('product_id', tst.id('p120'), 'qty', 10, 'cost', 1250)), 'TJS')$$, 'второй приход в TJS');
+select tst.lives($$select create_arrival(jsonb_build_array(jsonb_build_object('product_id', tst.id('p120'), 'qty', 10, 'cost', 1250)), 'TJS', null, null, 'transfer')$$, 'второй приход в TJS (оплата переводом)');
 reset role;
 select tst.ok((select avg_cost_tjs from products where id = tst.id('p120')) = 1025, 'средняя себестоимость (10×800 + 10×1250)/20 = 1025');
 select tst.ok((select stock from products where id = tst.id('p120')) = 20, 'остаток 20');

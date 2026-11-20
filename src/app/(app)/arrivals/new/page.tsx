@@ -7,26 +7,31 @@ import { ArrivalForm } from "./arrival-form";
 
 export const metadata: Metadata = { title: "Новый приход" };
 
-export default async function NewArrivalPage({ searchParams }: { searchParams: Promise<{ product?: string }> }) {
+export default async function NewArrivalPage({ searchParams }: { searchParams: Promise<{ product?: string; supplier?: string }> }) {
   await requirePermission("stock.edit");
-  const { product } = await searchParams;
+  const { product, supplier } = await searchParams;
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("products")
-    .select("id, name, sku, unit, purchase_price, purchase_currency")
-    .eq("is_active", true)
-    .order("name")
-    .limit(2000);
+  const [{ data }, { data: suppliers }, { data: settings }] = await Promise.all([
+    supabase.from("products").select("id, name, sku, unit, purchase_price, purchase_currency").eq("is_active", true).order("name").limit(2000),
+    supabase.from("suppliers").select("id, name").order("name").limit(1000),
+    supabase.from("settings").select("cny_rate").maybeSingle(),
+  ]);
   const products = (data ?? []) as { id: string; name: string; sku: string | null; unit: string; purchase_price: number; purchase_currency: Currency }[];
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Новый приход" subtitle="Остатки и себестоимость пересчитаются автоматически" back="/arrivals" />
+      <PageHeader title="Новый приход" subtitle="Остатки и полная себестоимость пересчитаются автоматически" back="/arrivals" />
       {products.length === 0 ? (
         <Notice tone="amber">
           Сначала добавьте товары. <LinkButton href="/products/new" variant="ghost" size="sm">Добавить товар</LinkButton>
         </Notice>
       ) : (
-        <ArrivalForm products={products} initialProduct={product} />
+        <ArrivalForm
+          products={products}
+          suppliers={suppliers ?? []}
+          cnyRate={Number(settings?.cny_rate ?? 1)}
+          initialProduct={product}
+          initialSupplier={supplier}
+        />
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Banknote, HandCoins, Package, ShoppingCart, TrendingUp, Truck, Wallet } from "lucide-react";
+import { AlertTriangle, Banknote, Factory, HandCoins, Package, ShoppingCart, TrendingUp, Truck, Wallet } from "lucide-react";
 import { requirePermission } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { createClient } from "@/lib/supabase/server";
@@ -24,8 +24,9 @@ export default async function DashboardPage() {
   const showCash = can(role, "cash.view");
   const showDebts = can(role, "customers.view");
   const showStock = can(role, "products.view");
+  const showSuppliers = can(role, "suppliers.pay");
 
-  const [todaySales, daily, recent, summary, cash, debts, lowStock, productCount] = await Promise.all([
+  const [todaySales, daily, recent, summary, cash, debts, lowStock, productCount, supplierDebts] = await Promise.all([
     showSales
       ? supabase.from("sales").select("total, rate").eq("status", "completed").gte("created_at", todayRange.start).lt("created_at", todayRange.end)
       : null,
@@ -46,7 +47,9 @@ export default async function DashboardPage() {
     showDebts ? supabase.from("customer_balances").select("currency, balance").gt("balance", 0) : null,
     showStock ? supabase.from("low_stock_products").select("id, name, stock, min_stock, unit").order("stock").limit(6) : null,
     showStock ? supabase.from("products").select("id", { count: "exact", head: true }).eq("is_active", true) : null,
+    showSuppliers ? supabase.from("supplier_balances").select("currency, balance").gt("balance", 0) : null,
   ]);
+  const supplierBy = (cur: Currency) => (supplierDebts?.data ?? []).filter((d) => d.currency === cur).reduce((s, d) => s + Number(d.balance), 0);
 
   const todayRevenue = (todaySales?.data ?? []).reduce((s, r) => s + Number(r.total) * Number(r.rate), 0);
   const todayCount = todaySales?.data?.length ?? 0;
@@ -110,6 +113,16 @@ export default async function DashboardPage() {
             tone="amber"
             icon={<HandCoins className="size-5" />}
             href="/debts"
+          />
+        )}
+        {showSuppliers && (
+          <StatCard
+            label="Долг поставщикам"
+            value={money(supplierBy("CNY"), "CNY")}
+            hint={money(supplierBy("TJS"))}
+            tone="red"
+            icon={<Factory className="size-5" />}
+            href="/suppliers"
           />
         )}
         {showStock && (

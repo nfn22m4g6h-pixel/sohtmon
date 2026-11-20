@@ -26,6 +26,8 @@ export const PERMISSIONS = {
   "sales.cancel": ["owner", "admin"],
   "stock.view": ["owner", "admin", "manager", "warehouse"],
   "stock.edit": ["owner", "admin", "manager", "warehouse"],
+  "suppliers.view": ["owner", "admin", "manager", "warehouse"],
+  "suppliers.pay": ["owner", "admin", "manager"],
   "customers.view": ["owner", "admin", "manager", "cashier"],
   "customers.edit": ["owner", "admin", "manager", "cashier"],
   "customers.delete": ["owner", "admin"],

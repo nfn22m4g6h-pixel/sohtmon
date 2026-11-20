@@ -19,6 +19,7 @@ const SOURCE_LABEL: Record<string, string> = {
   expense: "Расход",
   arrival: "Оплата прихода",
   manual: "Ручная операция",
+  supplier_payment: "Оплата поставщику",
 };
 
 export default async function CashPage({ searchParams }: { searchParams: Promise<{ p?: string; cur?: string }> }) {

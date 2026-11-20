@@ -13,6 +13,7 @@ const KINDS: Record<string, { perm: Permission; file: string }> = {
   expenses: { perm: "expenses.view", file: "rashody" },
   cash: { perm: "cash.view", file: "kassa" },
   report: { perm: "reports.view", file: "otchet" },
+  suppliers: { perm: "suppliers.pay", file: "postavshiki" },
 };
 
 const isDay = (v: string | null) => Boolean(v && /^\d{4}-\d{2}-\d{2}$/.test(v));
@@ -157,6 +158,33 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ kind
     });
   }
 
+  if (kind === "suppliers") {
+    const [{ data: balances }, { data: suppliers }] = await Promise.all([
+      supabase.from("supplier_balances").select("*"),
+      supabase.from("suppliers").select("id, name, phone, country").order("name"),
+    ]);
+    sheets = (["CNY", "TJS"] as const).map((cur) => {
+      const rows = (suppliers ?? []).map((s) => {
+        const b = (balances ?? []).find((x) => x.supplier_id === s.id && x.currency === cur);
+        return { ...s, total_purchased: b?.total_purchased ?? 0, total_paid: b?.total_paid ?? 0, balance: b?.balance ?? 0 };
+      }).filter((r) => Number(r.total_purchased) > 0 || Number(r.total_paid) > 0);
+      return {
+        name: `Поставщики ${cur}`,
+        title: `Расчёты с поставщиками (${cur}) на ${isoDay()}`,
+        columns: [
+          { header: "Поставщик", key: "name", width: 28 },
+          { header: "Телефон", key: "phone", width: 18 },
+          { header: "Страна", key: "country", width: 12 },
+          { header: "Закуплено", key: "total_purchased", type: "money" },
+          { header: "Оплачено", key: "total_paid", type: "money" },
+          { header: "Наш долг", key: "balance", type: "money" },
+        ],
+        rows,
+        totals: { balance: sum(rows, "balance") },
+      } satisfies Sheet;
+    });
+  }
+
   if (kind === "expenses") {
     const { data, error } = await supabase
       .from("expenses")
@@ -199,7 +227,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ kind
       .order("created_at")
       .limit(20000);
     if (error) return new Response(error.message, { status: 500 });
-    const SRC: Record<string, string> = { sale: "Продажа", sale_cancel: "Отмена продажи", debt_payment: "Оплата долга", expense: "Расход", arrival: "Оплата прихода", manual: "Ручная" };
+    const SRC: Record<string, string> = { sale: "Продажа", sale_cancel: "Отмена продажи", debt_payment: "Оплата долга", expense: "Расход", arrival: "Оплата прихода", manual: "Ручная", supplier_payment: "Оплата поставщику" };
     const rows = (data ?? []).map((t) => {
       const r = t as unknown as Record<string, unknown> & { profiles: { full_name: string } | null };
       return {

@@ -9,8 +9,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "SOHTMON", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   icons: {
-    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+        apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
 };
 

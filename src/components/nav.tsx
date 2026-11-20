@@ -24,6 +24,7 @@ import {
 import { can, ROLE_LABELS, type Permission, type Role } from "@/lib/rbac";
 import { cn } from "@/components/ui";
 import { signOut } from "@/app/actions";
+import { LogoMark } from "@/components/logo";
 
 export type NavItem = { href: string; label: string; short?: string; icon: LucideIcon; perm: Permission; group: string };
 
@@ -63,9 +64,7 @@ export function Sidebar({ role, name, company }: { role: Role; name: string; com
   return (
     <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-white lg:flex">
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-800 text-lg font-black text-white shadow-lg shadow-brand-600/30">
-          S
-        </div>
+        <LogoMark size={40} className="shrink-0 drop-shadow-[0_6px_12px_rgba(37,87,235,0.35)]" />
         <div className="min-w-0">
           <p className="truncate text-[15px] font-bold tracking-tight">{company}</p>
           <p className="text-xs text-muted">ERP 1.0</p>
@@ -159,9 +158,7 @@ export function MobileTopBar({ company, name }: { company: string; name: string 
     <header className="no-print sticky top-0 z-30 border-b border-line/70 bg-white/85 pt-[var(--safe-top)] backdrop-blur-xl lg:hidden">
       <div className="flex h-14 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-800 text-sm font-black text-white">
-            S
-          </div>
+          <LogoMark size={32} />
           <span className="text-[16px] font-bold tracking-tight">{company}</span>
         </Link>
         <Link href="/settings" className="grid size-9 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">

@@ -1,3 +1,4 @@
+import { LogoMark } from "@/components/logo";
 import type { ReactNode } from "react";
 
 export function AuthShell({ children, title, subtitle }: { children: ReactNode; title: string; subtitle: string }) {
@@ -6,9 +7,7 @@ export function AuthShell({ children, title, subtitle }: { children: ReactNode; 
       <div className="pointer-events-none absolute -top-40 left-1/2 h-[480px] w-[780px] -translate-x-1/2 rounded-full bg-gradient-to-b from-brand-200/70 to-transparent blur-3xl" />
       <div className="relative w-full max-w-sm animate-fade-up">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 text-3xl font-black text-white shadow-xl shadow-brand-600/30">
-            S
-          </div>
+          <LogoMark size={72} className="mx-auto mb-4 drop-shadow-[0_12px_24px_rgba(37,87,235,0.35)]" />
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="mt-1 text-sm text-muted">{subtitle}</p>
         </div>

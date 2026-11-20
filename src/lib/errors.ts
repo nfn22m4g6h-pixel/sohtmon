@@ -10,3 +10,11 @@ export function dbError(error: { message?: string; code?: string } | null | unde
   if (/[а-яё]/i.test(msg)) return msg;
   return `Ошибка базы данных: ${msg}`;
 }
+
+/** Таблица/функция версии 2.0 ещё не создана в базе (не выполнено обновление supabase/upgrades/*.sql) */
+export function isMissingSchema(error: { code?: string; message?: string } | null | undefined) {
+  if (!error) return false;
+  return ["PGRST202", "PGRST205", "42P01", "42883", "42703", "PGRST200"].includes(error.code ?? "") || /does not exist|could not find/i.test(error.message ?? "");
+}
+
+export const UPGRADE_HINT = "Эта функция появится после обновления базы: выполните supabase/upgrades/2.0-a.sql в Supabase → SQL Editor.";

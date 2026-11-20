@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { authorize } from "@/lib/auth";
-import { dbError } from "@/lib/errors";
+import { dbError, isMissingSchema, UPGRADE_HINT } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState, Currency, PaymentMethod } from "@/lib/types";
 
@@ -30,6 +30,23 @@ export async function createArrival(input: ArrivalInput): Promise<ActionState> {
     p_extra_costs: input.extra_costs.filter((c) => c.amount > 0),
     p_note: input.note || null,
   });
+  if (error && isMissingSchema(error)) {
+    // База ещё версии 1.0: проводим приход старой функцией (без поставщика, долга и доп. расходов)
+    const extras = input.extra_costs.filter((c) => c.amount > 0);
+    if (input.supplier_id || extras.length || input.paid < input.items.reduce((s, i) => s + i.qty * i.cost, 0) - 0.005) {
+      return { error: UPGRADE_HINT };
+    }
+    const legacy = await supabase.rpc("create_arrival", {
+      p_items: input.items,
+      p_currency: input.currency,
+      p_supplier: null,
+      p_paid_from_cash: input.paid_method === "cash" && input.paid > 0,
+      p_note: input.note || null,
+    });
+    if (legacy.error) return { error: dbError(legacy.error) };
+    revalidatePath("/", "layout");
+    return { ok: true, id: (legacy.data as { id: string }).id };
+  }
   if (error) return { error: dbError(error) };
   revalidatePath("/", "layout");
   return { ok: true, id: (data as { id: string }).id };

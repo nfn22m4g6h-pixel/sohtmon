@@ -115,7 +115,7 @@ export default async function DashboardPage() {
             href="/debts"
           />
         )}
-        {showSuppliers && (
+        {showSuppliers && !supplierDebts?.error && (
           <StatCard
             label="Долг поставщикам"
             value={money(supplierBy("CNY"), "CNY")}

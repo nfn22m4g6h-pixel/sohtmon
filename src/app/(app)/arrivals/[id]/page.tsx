@@ -19,7 +19,7 @@ export default async function ArrivalPage({ params }: { params: Promise<{ id: st
   const [{ data }, { data: costs }, { data: payments }] = await Promise.all([
     supabase
       .from("stock_arrivals")
-      .select("*, profiles:created_by(full_name), stock_arrival_items(id, qty, cost, total, landed_unit_cost_tjs, products(name, unit))")
+      .select("*, profiles:created_by(full_name), stock_arrival_items(*, products(name, unit))")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("stock_arrival_costs").select("id, name, amount, currency, paid_from_cash").eq("arrival_id", id),

@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { money } from "@/lib/format";
 import { cleanSearch } from "@/lib/search";
 import type { Currency } from "@/lib/types";
-import { Badge, Card, EmptyState, List, ListRow, PageHeader, StatCard } from "@/components/ui";
+import { Badge, Card, EmptyState, List, ListRow, Notice, PageHeader, StatCard } from "@/components/ui";
+import { isMissingSchema, UPGRADE_HINT } from "@/lib/errors";
 import { SearchInput } from "@/components/search-input";
 import { ExportButton } from "@/components/export-button";
 import { NewSupplierButton } from "./supplier-forms";
@@ -23,10 +24,18 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
   const supabase = await createClient();
   let query = supabase.from("suppliers").select("id, name, phone, country").order("name").limit(500);
   if (search) query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
-  const [{ data: suppliers }, { data: balances }] = await Promise.all([
+  const [{ data: suppliers, error: loadError }, { data: balances }] = await Promise.all([
     query,
     canPay ? supabase.from("supplier_balances").select("supplier_id, currency, balance") : Promise.resolve({ data: [] }),
   ]);
+  if (isMissingSchema(loadError)) {
+    return (
+      <div>
+        <PageHeader title="Поставщики" />
+        <Notice tone="amber">{UPGRADE_HINT}</Notice>
+      </div>
+    );
+  }
   const list = suppliers ?? [];
   const bal = (balances ?? []) as Balance[];
   const byId = new Map<string, Balance[]>();

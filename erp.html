@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOHTMON ERP</title>
+<link rel="stylesheet" href="erp.css">
+<script defer src="erp.js"></script>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span id="brand-name">SOHTMON</span> <small>ERP</small></div>
+    <nav id="nav">
+      <a href="#dashboard" data-page="dashboard">📊 Главная</a>
+      <a href="#sales" data-page="sales">🧾 Продажи</a>
+      <a href="#products" data-page="products">📦 Склад</a>
+      <a href="#purchases" data-page="purchases">🚚 Закупки</a>
+      <a href="#clients" data-page="clients">👥 Клиенты</a>
+      <a href="#suppliers" data-page="suppliers">🏭 Поставщики</a>
+      <a href="#expenses" data-page="expenses">💸 Расходы</a>
+      <a href="#reports" data-page="reports">📈 Отчёты</a>
+      <a href="#settings" data-page="settings">⚙️ Настройки</a>
+    </nav>
+    <a class="to-shop" href="index.html">← Сайт магазина</a>
+  </aside>
+
+  <main class="content">
+    <div class="page-head">
+      <h1 id="page-title"></h1>
+      <div id="page-actions" class="page-actions"></div>
+    </div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<dialog id="modal">
+  <form id="modal-form" method="dialog" novalidate>
+    <div class="modal-head">
+      <h2 id="modal-title"></h2>
+      <button type="button" class="icon-btn" id="modal-close" aria-label="Закрыть">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <p id="modal-error" class="error" role="alert"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="modal-cancel">Отмена</button>
+      <button type="submit" class="btn primary">Сохранить</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status"></div>
+<div id="print-area"></div>
+
+</body>
+</html>

@@ -1,25 +1,83 @@
-body{
-font-family:Arial;
-background:#f4f4f4;
-margin:0;
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  color: #111;
+  margin: 0;
 }
 
-header{
-background:#111;
-color:white;
-padding:20px;
-text-align:center;
+header {
+  background: #111;
+  color: white;
+  padding: 20px;
+  text-align: center;
 }
+header h1 { margin: 0 0 6px; letter-spacing: 2px; }
+header p { margin: 0; opacity: .8; }
 
-.card{
-background:white;
-margin:20px;
-padding:20px;
-border-radius:12px;
-}
+main { max-width: 720px; margin: 0 auto; padding: 0 16px; }
 
-.price{
-font-size:30px;
-font-weight:bold;
-color:red;
+.section-title { margin: 24px 0 12px; }
+
+.catalog { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+.card, .order form {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
 }
+.card h3 { margin: 4px 0 8px; }
+.card p { margin: 6px 0; }
+.emoji { font-size: 40px; }
+
+.price { font-size: 30px; font-weight: bold; color: red; }
+
+.btn {
+  display: inline-block;
+  padding: 12px 18px;
+  border: 1px solid #111;
+  border-radius: 8px;
+  background: white;
+  color: #111;
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: center;
+}
+.btn.primary { background: #111; color: white; }
+.btn.small { padding: 6px 12px; font-size: 14px; }
+.card .btn { width: 100%; margin-top: 8px; }
+
+form label { display: block; margin: 12px 0; font-weight: bold; }
+form input[type=text], form input[type=tel], form textarea, .qty input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-family: inherit;
+}
+fieldset { border: 1px solid #ddd; border-radius: 8px; margin: 12px 0; }
+.radio { font-weight: normal; margin: 6px 0; }
+
+.qty { display: flex; gap: 8px; margin-top: 6px; }
+.qty input { width: 80px; margin: 0; text-align: center; }
+.qty button { width: 44px; font-size: 20px; border: 1px solid #ccc; border-radius: 8px; background: #fafafa; cursor: pointer; }
+
+.selected { font-size: 18px; padding: 10px; background: #f4f4f4; border-radius: 8px; }
+.total { font-size: 22px; font-weight: bold; margin: 16px 0 4px; }
+.error { color: #c00; min-height: 1em; margin: 4px 0; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.actions .btn { flex: 1 1 180px; }
+
+.history { background: white; border-radius: 12px; padding: 12px 12px 12px 32px; }
+.history li { margin: 6px 0; }
+
+footer { text-align: center; padding: 24px 16px; color: #555; }
+footer a { color: inherit; }
+
+.hidden { display: none !important; }
